@@ -1,3 +1,3 @@
 # Cinder-BluecadetProximity
 
-Basic cinder block to provide proximity sensor data
+Cinder block to provide proximity sensor data. Currently supports MaxBotix HRUSB-MaxSonar-EZ1.
