@@ -1,10 +1,12 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "Proximity.h"
 
+using namespace std;
 using namespace ci;
 using namespace ci::app;
-using namespace std;
+using namespace bluecadet::proximity;
 
 class ProximityVisualizerApp : public App {
   public:
