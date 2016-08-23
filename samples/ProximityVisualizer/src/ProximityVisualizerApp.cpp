@@ -1,6 +1,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "cinder/params/Params.h"
 #include "Proximity.h"
 
 using namespace std;
@@ -17,12 +18,19 @@ public:
 	void update() override;
 	void draw() override;
 
-	bool connected = false;
+	bool mConnected = false;
 	void startConnection();
 	void stopConnection();
+	void toggleConnection();
+
+	params::InterfaceGlRef mParams;
 };
 
 void ProximityVisualizerApp::setup() {
+	mParams = params::InterfaceGl::create(getWindow(), "App Controls", toPixels(ivec2(200, 300)));
+	mParams->addButton("Toggle Connection", bind(&ProximityVisualizerApp::toggleConnection, this));
+	mParams->addText("connectionStatus", "label=`Serial connection: OFF`");
+
 	startConnection();
 }
 
@@ -36,7 +44,7 @@ void ProximityVisualizerApp::mouseDown(MouseEvent event) {
 void ProximityVisualizerApp::keyDown(KeyEvent event) {
 	switch (event.getCode()) {
 	case KeyEvent::KEY_SPACE:
-		if (connected) {
+		if (mConnected) {
 			stopConnection();
 		} else {
 			startConnection();
@@ -45,7 +53,7 @@ void ProximityVisualizerApp::keyDown(KeyEvent event) {
 }
 
 void ProximityVisualizerApp::update() {
-	if (connected) {
+	if (mConnected) {
 		auto &devices = Proximity::getInstance()->getAllDevices();
 		console() << "-------------------------------" << endl << endl;
 		for (auto &device : devices) {
@@ -55,26 +63,39 @@ void ProximityVisualizerApp::update() {
 			console() << device.second.distance << endl;
 			console() << endl;
 		}
+
+		mParams->setOptions("connectionStatus", "label=`Serial connection: ON`");
+	} else {
+		mParams->setOptions("connectionStatus", "label=`Serial connection: OFF`");
 	}
 }
 
 void ProximityVisualizerApp::draw() {
 	gl::clear(Color(0, 0, 0));
+	mParams->draw();
 }
 
 void ProximityVisualizerApp::startConnection() {
-	if (connected == false) {
+	if (mConnected == false) {
 		Proximity::getInstance()->start();
 		console() << "Serial connection started." << endl << endl;
-		connected = true;
+		mConnected = true;
 	}
 }
 
 void ProximityVisualizerApp::stopConnection() {
-	if (connected == true) {
+	if (mConnected == true) {
 		Proximity::getInstance()->stop();
 		console() << "Serial connection stopped." << endl << endl;
-		connected = false;
+		mConnected = false;
+	}
+}
+
+void ProximityVisualizerApp::toggleConnection() {
+	if (mConnected == true) {
+		stopConnection();
+	} else {
+		startConnection();
 	}
 }
 
