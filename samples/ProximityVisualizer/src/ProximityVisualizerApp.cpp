@@ -27,6 +27,7 @@ public:
 };
 
 void ProximityVisualizerApp::setup() {
+
 	mParams = params::InterfaceGl::create(getWindow(), "App Controls", toPixels(ivec2(200, 300)));
 	mParams->addButton("Toggle Connection", bind(&ProximityVisualizerApp::toggleConnection, this));
 	mParams->addText("connectionStatus", "label=`Serial connection: OFF`");
@@ -68,6 +69,8 @@ void ProximityVisualizerApp::update() {
 	} else {
 		mParams->setOptions("connectionStatus", "label=`Serial connection: OFF`");
 	}
+
+	//console() << Proximity::getInstance()->hasDevice("\\\\?\\ftdibus#vid_0403+pid_6001+mb9xk7ya#0000#{4d36e978-e325-11ce-bfc1-08002be10318}") << endl; // Make sure to escape the \s!
 }
 
 void ProximityVisualizerApp::draw() {

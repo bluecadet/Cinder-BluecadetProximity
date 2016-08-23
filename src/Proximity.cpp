@@ -39,8 +39,12 @@ void Proximity::stop() {
 	}
 }
 
-const Proximity::Device& Proximity::getDevice(const string & sn) const {
-	return mDevices.at(sn);
+bool Proximity::hasDevice(const std::string & path) const {
+	return mDevices.find(path) != mDevices.end();
+}
+
+const Proximity::Device& Proximity::getDevice(const string & path) const {
+	return mDevices.at(path);
 }
 
 const map<string, Proximity::Device>& Proximity::getAllDevices() const {
