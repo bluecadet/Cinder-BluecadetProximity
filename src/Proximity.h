@@ -28,7 +28,10 @@ public:
 	void start();
 	void stop();
 
-	const Device& getDevice(const std::string &sn) const;
+	bool hasDevice(const std::string &path) const;
+	//! Call hasDevice() before! Unmatched path in getDevice() results in exceptions.
+	const Device& getDevice(const std::string &path) const;
+	//! Returns all the devices that has ever been connected at runtime, including those disconnected currently.
 	const std::map<std::string, Device>& getAllDevices() const;
 
 private:
