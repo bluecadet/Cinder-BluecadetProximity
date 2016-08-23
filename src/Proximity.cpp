@@ -48,17 +48,19 @@ const map<string, Proximity::Device>& Proximity::getAllDevices() const {
 }
 
 void Proximity::updateDeviceList() {
-	// Mark all previous existing devices as DISCONNECTED.
+	// Touch-marks to ensure updateing all storedDevices:
+	map<string, bool> storedDeviceTouched;
 	for (auto &storedDevice : mDevices) {
-		storedDevice.second.status = Device::Status::DISCONNECTED;
+		storedDeviceTouched.emplace(storedDevice.second.path, false);
 	}
 	
 	// Check all the currently connected devices:
-	for (const auto &connectedDevice : Serial::getDevices()) {
+	for (const auto &connectedDevice : Serial::getDevices(true)) { // Have to force Serial::getDevices() to refresh its cache.
 		auto storedDeviceMatch = mDevices.find(connectedDevice.getPath());
-		if (storedDeviceMatch != mDevices.end()) { // It's a previous existing device. Update it's stuatus.
-			storedDeviceMatch->second.status = Device::Status::CONNECTED;
-			if (storedDeviceMatch->second.name != connectedDevice.getName()) { // The serial port (represented by device name) has changed. Rebuild serial connection.
+		if (storedDeviceMatch != mDevices.end()) { // It's a previous existing device.
+			storedDeviceTouched.at(storedDeviceMatch->second.path) = true; // Make touch-mark.
+			if (storedDeviceMatch->second.status == Device::Status::DISCONNECTED || /*Either it's a reconnected device,*/
+				storedDeviceMatch->second.name != connectedDevice.getName()) { // or its serial port (represented by device name) has changed. Rebuild serial connection.
 				try {
 					storedDeviceMatch->second.serial = Serial::create(connectedDevice, 57600);
 				} catch (SerialExc &exception) {
@@ -66,6 +68,7 @@ void Proximity::updateDeviceList() {
 					exit(-1);
 				}
 			}
+			storedDeviceMatch->second.status = Device::Status::CONNECTED;
 		} else { // It's a new device. Add it to mDevices.
 			Device newDevice;
 			try {
@@ -78,6 +81,13 @@ void Proximity::updateDeviceList() {
 			newDevice.path = connectedDevice.getPath();
 			newDevice.status = Device::Status::CONNECTED;
 			mDevices.emplace(newDevice.path, newDevice);
+		}
+	}
+
+	// Check touch-marks to discover disconnected devices:
+	for (auto &touchMark : storedDeviceTouched) {
+		if (touchMark.second == false) {
+			mDevices.at(touchMark.first).status = Device::Status::DISCONNECTED;
 		}
 	}
 
@@ -102,15 +112,19 @@ void Proximity::updateData() {
 
 	// For all connected devices, read data from serial connection:
 	for (auto &storedDevice : mDevices) {
-		try {
-			string reading = storedDevice.second.serial->readStringUntil('\n');
-			storedDevice.second.serial->flush();
+		if (storedDevice.second.status == Device::Status::CONNECTED) {
+			try {
+				if (storedDevice.second.serial->getNumBytesAvailable() >= 5) {
+					string reading = storedDevice.second.serial->readStringUntil('\n', 5);
+					storedDevice.second.serial->flush();
 
-			if (reading.length() == 5) {
-				storedDevice.second.distance = atoi(reading.substr(1).c_str());
+					if (reading.length() == 5) {
+						storedDevice.second.distance = atoi(reading.substr(1).c_str());
+					}
+				}
+			} catch (SerialTimeoutExc &exception) {
+				CI_LOG_EXCEPTION("timeout when reading from serial", exception);
 			}
-		} catch (SerialTimeoutExc &exception) {
-			CI_LOG_EXCEPTION("timeout when reading from serial", exception);
 		}
 	}
 }
