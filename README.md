@@ -10,7 +10,7 @@ The main [`Proximity`](src/Proximity.h) class is a singleton that provides acces
 
 Use `Proximity::getInstance()->start()` to establish the serial connection, and `Proximity::getInstance()->stop()` to disconnect. When connected, the Cinder block will update the device list and read the sensor data before every update cycle of the Cinder app.
 
-`Proximity::getInstance()->getAllDevices()` returns all the devices that have ever been connected at runtime, including those disconnected currently. `Proximity::getInstance()->getDevice(const std::string &path)` returns devices by path. It will throw exceptions on unmatched path. hasDevice(const std::string &path) checks whether a device exists.
+`Proximity::getInstance()->getAllDevices()` returns all the devices that have ever been connected at runtime, including those disconnected currently. `Proximity::getInstance()->getDevice(const std::string &path)` returns devices by path. It will throw exceptions on unmatched path. `Proximity::getInstance()->hasDevice(const std::string &path)` checks whether a device exists.
 
 Hot plugging of devices is supported. Tested scenrios include adding/removing devices, reconnect a pre-existed device to the same COM port or a new port. It is recommended that `Proximity::getInstance()->stop()` is called before the hot plugging operations (and `Proximity::getInstance()->start()` after the operations). For now, (re)connecting to a device causes a few seconds of penalty of the main thread.
 
