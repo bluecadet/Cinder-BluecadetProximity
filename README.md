@@ -4,7 +4,7 @@ Cinder block to provide proximity sensor data. Currently supports MaxBotix HRUSB
 
 Always use Proximity::getInstance() to get the singleton and call member functions of it. 
 
-Use start() to establish the serial connection, and stop() to disconnect. When connected, the Cinder block will update the device list and read sensor data before every update cycle of the Cinder app.
+Use start() to establish the serial connection, and stop() to disconnect. When connected, the Cinder block will update the device list and read the sensor data before every update cycle of the Cinder app.
 
 getAllDevices() returns all the devices that has ever been connected at runtime, including those disconnected currently. getDevice(const std::string &path) returns device by path. It will throw exceptions on unmatched path. hasDevice(const std::string &path) checks whether a device exists.
 
